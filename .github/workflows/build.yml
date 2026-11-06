@@ -6,6 +6,12 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional existing tag to publish or verify (for example v1.0.0)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -57,7 +63,7 @@ jobs:
           retention-days: 14
 
   release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     needs: build
     runs-on: windows-latest
     timeout-minutes: 10
@@ -77,8 +83,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
         run: |
           $assets = @('release/SheetSetRelinker.exe', 'release/SheetSetRelinker-windows-x64.zip', 'release/SHA256SUMS.txt', 'release/build-info.json')
-          gh release create $env:RELEASE_TAG @assets --verify-tag --title ('Sheet Set Relinker ' + $env:RELEASE_TAG) --generate-notes
-          if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
+          $existingJson = gh release view $env:RELEASE_TAG --json tagName,isDraft,assets 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            $existing = $existingJson | ConvertFrom-Json
+            if ($existing.isDraft) { throw 'A draft release already exists. Finish or review it before running the publisher again.' }
+            foreach ($assetPath in $assets) {
+              $name = Split-Path $assetPath -Leaf
+              if ($name -notin $existing.assets.name) { throw "The existing release is missing $name. Review the incomplete release before continuing." }
+            }
+            Write-Host "Release $env:RELEASE_TAG is already published with all expected assets. Verified; existing downloads kept unchanged."
+          } else {
+            gh release create $env:RELEASE_TAG @assets --verify-tag --title ('Sheet Set Relinker ' + $env:RELEASE_TAG) --generate-notes
+            if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
+          }
