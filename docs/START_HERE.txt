@@ -1,0 +1,19 @@
+SHEET SET RELINKER — WINDOWS x64
+
+1. Extract this ZIP to a folder.
+2. Double-click SheetSetRelinker.exe. No installation or separate runtime is needed.
+3. Drop in your .dst sheet-set file.
+4. Choose the destination folder and whether the DWGs are already there or should be copied.
+5. Edit the new DWG filenames, or use Find / Replace / Apply.
+6. Click Validate, then Create updated DST.
+7. Open the new DST in AutoCAD and check its sheets.
+
+Your originals are kept. Existing output files are never overwritten.
+Use copies of the original DWGs with their layouts unchanged. Xrefs and DWG contents are not edited.
+For errors: View log gives detailed local diagnostics; Save support report creates a report to review before sharing.
+
+The EXE includes its runtime and licenses. It is unsigned, so Windows or workplace security policy may prompt or block it.
+Supported release: Windows 10/11 x64. No AutoCAD installation is needed to run the relinker; AutoCAD is needed to verify the finished sheet set.
+
+Source, instructions and updates:
+https://github.com/tiagovasc/autocad-dst-relinker

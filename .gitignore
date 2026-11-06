@@ -1,0 +1,15 @@
+dist/
+bin/
+obj/
+test-output/
+*.user
+*.suo
+*.log
+*.support.txt
+*.dst
+*.dwg
+*.dwl
+*.dwl2
+*.pdb
+README_App.md
+
